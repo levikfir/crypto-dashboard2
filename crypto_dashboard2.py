@@ -94,7 +94,10 @@ if not df_clean.empty and df_clean.shape[1] > 1:
         st.write("Category Names:", category_names)
         st.write("Category Values:", category_values)
 
-        if len(category_names) != len(category_values):
+        # Ensure values and names are not empty
+        if not category_values or not category_names:
+            st.warning("⚠️ הנתונים לגרף ריקים, נא לבדוק את הנתונים בטבלה.")
+        elif len(category_names) != len(category_values):
             st.warning("⚠️ מספר שמות הקטגוריות ומספר הערכים אינם תואמים. בדוק את הנתונים.")
         else:
             fig = px.pie(names=category_names, values=category_values, title="התפלגות השקעות")
