@@ -34,7 +34,7 @@ def get_crypto_price(symbol, currency="usd"):
         st.error(f"שגיאה בשליפת מחירי מטבעות: {e}")
         return None
 
-# טעינת הנתונים מגוגל שיטס עם קידוד תקין
+# טעינת הנתונים מגוגל שיטס עם ניקוי נתונים
 sheet_id = "1d71M2zrAM8ju1dKuGnWYEavIABYT30_4"
 sheet_name = "חישובים"
 url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
@@ -44,7 +44,12 @@ def load_data():
         response = requests.get(url)
         response.encoding = "utf-8"
         data = response.text
-        df = pd.read_csv(io.StringIO(data))
+        df = pd.read_csv(io.StringIO(data), index_col=0, skip_blank_lines=True)
+
+        # הסרת עמודות ושורות ריקות
+        df = df.dropna(axis=1, how='all')
+        df = df.dropna(axis=0, how='all')
+
         return df
     except Exception as e:
         st.error(f"❌ שגיאה בטעינת הנתונים מגוגל שיטס: {e}")
@@ -82,16 +87,16 @@ st.metric(label="📈 אחוז מסך ההשקעה", value=f"{investment_percent
 st.metric(label="🔢 ממוצע מחיר קנייה", value=f"${avg_buy_price:,.4f}")
 
 # בדיקה אם יש מספיק נתונים לצורך יצירת הגרף
-if len(df) > 1 and df.shape[1] > 1:
-    if df.iloc[1:, 1].notna().sum() > 0 and pd.to_numeric(df.iloc[1:, 1], errors='coerce').notna().sum() > 0:
-        try:
-            fig = px.pie(df.iloc[1:], names=df.columns[0], values=pd.to_numeric(df.iloc[1:, 1], errors='coerce'),
-                         title="התפלגות השקעות")
-            st.plotly_chart(fig, use_container_width=True)
-        except Exception as e:
-            st.warning(f"⚠️ שגיאה ביצירת גרף: {e}")
-    else:
-        st.warning("⚠️ אין מספיק נתונים מספריים ליצירת גרף התפלגות השקעות.")
+
+df_clean = df.iloc[1:].dropna(subset=[df.columns[1]])  # שמירה רק על שורות עם ערכים בעמודת ההשקעה
+
+if not df_clean.empty and df_clean.shape[1] > 1:
+    try:
+        fig = px.pie(df_clean, names=df_clean.columns[0], values=pd.to_numeric(df_clean.iloc[:, 1], errors='coerce'),
+                     title="התפלגות השקעות")
+        st.plotly_chart(fig, use_container_width=True)
+    except Exception as e:
+        st.warning(f"⚠️ שגיאה ביצירת גרף: {e}")
 else:
     st.warning("⚠️ אין מספיק נתונים להצגת גרף התפלגות השקעות.")
 
