@@ -33,14 +33,14 @@ def get_crypto_price(symbol, currency="usd"):
         st.error(f"שגיאה בשליפת מחירי מטבעות: {e}")
         return None
 
-# טעינת הנתונים מגוגל שיטס עם קידוד UTF-8
+# טעינת הנתונים מגוגל שיטס עם קידוד UTF-8-SIG
 sheet_id = "1d71M2zrAM8ju1dKuGnWYEavIABYT30_4"
 sheet_name = "חישובים"
 url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
 
 def load_data():
     try:
-        df = pd.read_csv(url, encoding="utf-8")
+        df = pd.read_csv(url, encoding="utf-8-sig")
         return df
     except Exception as e:
         st.error(f"❌ שגיאה בטעינת הנתונים מגוגל שיטס: {e}")
