@@ -40,7 +40,7 @@ url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sh
 
 def load_data():
     try:
-        df = pd.read_csv(url, encoding="utf-8")
+        df = pd.read_csv(url, encoding="utf-8-sig")
         return df
     except Exception as e:
         st.error(f"❌ שגיאה בטעינת הנתונים מגוגל שיטס: {e}")
