@@ -83,9 +83,13 @@ st.metric(label="🔢 ממוצע מחיר קנייה", value=f"${avg_buy_price:,
 
 # בדיקה אם יש מספיק נתונים לצורך יצירת הגרף
 if len(df) > 1 and df.shape[1] > 1:
-    if df.iloc[1:, 1].notna().sum() > 0:
-        fig = px.pie(df.iloc[1:], names=df.columns[0], values=df.iloc[:, 1], title="התפלגות השקעות")
-        st.plotly_chart(fig, use_container_width=True)
+    if df.iloc[1:, 1].notna().sum() > 0 and pd.to_numeric(df.iloc[1:, 1], errors='coerce').notna().sum() > 0:
+        try:
+            fig = px.pie(df.iloc[1:], names=df.columns[0], values=pd.to_numeric(df.iloc[1:, 1], errors='coerce'),
+                         title="התפלגות השקעות")
+            st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            st.warning(f"⚠️ שגיאה ביצירת גרף: {e}")
     else:
         st.warning("⚠️ אין מספיק נתונים מספריים ליצירת גרף התפלגות השקעות.")
 else:
