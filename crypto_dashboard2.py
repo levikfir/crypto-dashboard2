@@ -82,11 +82,14 @@ st.metric(label="📈 אחוז מסך ההשקעה", value=f"{investment_percent
 st.metric(label="🔢 ממוצע מחיר קנייה", value=f"${avg_buy_price:,.4f}")
 
 # בדיקה אם יש מספיק נתונים לצורך יצירת הגרף
-if len(df) > 1:
-    fig = px.pie(df.iloc[1:], names=df.columns[0], values=df.iloc[:, 1], title="התפלגות השקעות")
-    st.plotly_chart(fig, use_container_width=True)
+if len(df) > 1 and df.shape[1] > 1:
+    if df.iloc[1:, 1].notna().sum() > 0:
+        fig = px.pie(df.iloc[1:], names=df.columns[0], values=df.iloc[:, 1], title="התפלגות השקעות")
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("⚠️ אין מספיק נתונים מספריים ליצירת גרף התפלגות השקעות.")
 else:
-    st.warning("אין מספיק נתונים להצגת גרף התפלגות השקעות.")
+    st.warning("⚠️ אין מספיק נתונים להצגת גרף התפלגות השקעות.")
 
 # הצגת טבלת נתונים
 st.dataframe(df.iloc[1:], use_container_width=True)
