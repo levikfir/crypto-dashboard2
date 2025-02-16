@@ -86,9 +86,14 @@ df_clean = df.dropna(subset=[df.columns[1]])
 
 if not df_clean.empty and df_clean.shape[1] > 1:
     try:
-        fig = px.pie(df_clean, names=df_clean[df_clean.columns[0]].dropna().astype(str).tolist(), values=df_clean.iloc[:, 1].dropna().astype(float).tolist(),
-                     title="התפלגות השקעות")
-        st.plotly_chart(fig, use_container_width=True)
+        category_values = df_clean.iloc[:, 1].dropna().astype(float).tolist()
+        category_names = df_clean[df_clean.columns[0]].dropna().astype(str).tolist()
+        
+        if len(category_names) != len(category_values):
+            st.warning("⚠️ מספר שמות הקטגוריות ומספר הערכים אינם תואמים. בדוק את הנתונים.")
+        else:
+            fig = px.pie(names=category_names, values=category_values, title="התפלגות השקעות")
+            st.plotly_chart(fig, use_container_width=True)
     except Exception as e:
         st.warning(f"⚠️ שגיאה ביצירת גרף: {e}")
 else:
