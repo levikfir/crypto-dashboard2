@@ -44,14 +44,19 @@ def load_data():
         response = requests.get(url)
         response.encoding = "utf-8"
         data = response.text
-        df = pd.read_csv(io.StringIO(data), index_col=0, skip_blank_lines=True)
+        df = pd.read_csv(io.StringIO(data), skip_blank_lines=True)
+
+        # הפיכת השורה הראשונה לכותרות אם היא לא נלקחה נכון
+        df.columns = df.iloc[0]
+        df = df[1:].reset_index(drop=True)
 
         # הסרת עמודות ושורות ריקות
         df = df.dropna(axis=1, how='all')
         df = df.dropna(axis=0, how='all')
 
-        # תיקון שמות העמודות - הסרת "Unnamed"
-        df.columns = [col if not col.startswith("Unnamed") else f"Column_{i}" for i, col in enumerate(df.columns)]
+        # המרת עמודות למספרים במידת הצורך
+        for col in df.columns[1:]:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
 
         return df
     except Exception as e:
@@ -60,16 +65,12 @@ def load_data():
 
 df = load_data()
 
-# המרת עמודות מספריות למספרים, והתעלמות משגיאות
-for col in df.columns[1:]:
-    df[col] = pd.to_numeric(df[col], errors='coerce')
-
 # הגדרת מבנה הדאשבורד
 st.set_page_config(page_title="Crypto Dashboard", layout="wide")
 st.title("📊 Crypto Investment Dashboard")
 
 # בחירת מטבע לתצוגה
-coin_options = df.iloc[1:, 0].dropna().unique()
+coin_options = df.iloc[:, 0].dropna().unique()
 selected_coin = st.selectbox("בחר מטבע:", coin_options)
 
 # סינון הנתונים לפי המטבע הנבחר
@@ -80,17 +81,8 @@ current_market_price = get_crypto_price(selected_coin.lower())
 if current_market_price is not None:
     st.metric(label="💲 מחיר שוק בזמן אמת (USD)", value=f"${current_market_price:,.2f}")
 
-# הצגת נתונים מרכזיים עם המרת ערכים למספרים
-investment_total = float(coin_data.iloc[0, 1]) if not pd.isna(coin_data.iloc[0, 1]) else 0
-investment_percentage = float(coin_data.iloc[0, 2]) * 100 if not pd.isna(coin_data.iloc[0, 2]) else 0
-avg_buy_price = float(coin_data.iloc[0, 4]) if not pd.isna(coin_data.iloc[0, 4]) else 0
-
-st.metric(label="💰 סך ההשקעה (USD)", value=f"${investment_total:,.2f}")
-st.metric(label="📈 אחוז מסך ההשקעה", value=f"{investment_percentage:.2f}%")
-st.metric(label="🔢 ממוצע מחיר קנייה", value=f"${avg_buy_price:,.4f}")
-
 # יצירת גרף רק אם יש נתונים תקינים
-df_clean = df.iloc[1:].dropna(subset=[df.columns[1]])
+df_clean = df.dropna(subset=[df.columns[1]])
 
 if not df_clean.empty and df_clean.shape[1] > 1:
     try:
@@ -103,39 +95,4 @@ else:
     st.warning("⚠️ אין מספיק נתונים להצגת גרף התפלגות השקעות.")
 
 # הצגת טבלת נתונים
-st.dataframe(df.iloc[1:], use_container_width=True)
-
-# פונקציה לשליחת התראות
-def send_notification(title, message):
-    notification.notify(
-        title=title,
-        message=message,
-        app_name="Crypto Dashboard",
-        timeout=5
-    )
-
-# פונקציה לשליחת הודעה ב-WhatsApp
-def send_whatsapp_message(message):
-    account_sid = "your_twilio_account_sid"
-    auth_token = "your_twilio_auth_token"
-    client = Client(account_sid, auth_token)
-    
-    client.messages.create(
-        body=message,
-        from_="whatsapp:+14155238886",  # מספר ה-WhatsApp של Twilio
-        to="whatsapp:+YourPhoneNumber"  # מספר ה-WhatsApp שלך
-    )
-
-# מחיר יעד למטבע (מתוך הגיליון, אם קיים)
-if "Target Price" in df.columns:
-    target_price = float(coin_data.iloc[0, df.columns.get_loc("Target Price")]) if not pd.isna(coin_data.iloc[0, df.columns.get_loc("Target Price")]) else None
-else:
-    target_price = None
-
-# מעקב אחר הגעה ליעד
-if current_market_price and target_price and current_market_price >= target_price * 0.9 and current_market_price < target_price:
-    alert_message = f"📢 קרוב למחיר היעד! ההשקעה ב-{selected_coin} במרחק 10% ממחיר היעד!"
-    send_notification("📢 קרוב ליעד!", alert_message)
-    send_whatsapp_message(alert_message)
-
-st.session_state.previous_value = current_market_price
+st.dataframe(df, use_container_width=True)
