@@ -50,6 +50,9 @@ def load_data():
         df = df.dropna(axis=1, how='all')
         df = df.dropna(axis=0, how='all')
 
+        # תיקון שמות העמודות - הסרת "Unnamed"
+        df.columns = [col if not col.startswith("Unnamed") else f"Column_{i}" for i, col in enumerate(df.columns)]
+
         return df
     except Exception as e:
         st.error(f"❌ שגיאה בטעינת הנתונים מגוגל שיטס: {e}")
@@ -86,9 +89,8 @@ st.metric(label="💰 סך ההשקעה (USD)", value=f"${investment_total:,.2f}
 st.metric(label="📈 אחוז מסך ההשקעה", value=f"{investment_percentage:.2f}%")
 st.metric(label="🔢 ממוצע מחיר קנייה", value=f"${avg_buy_price:,.4f}")
 
-# בדיקה אם יש מספיק נתונים לצורך יצירת הגרף
-
-df_clean = df.iloc[1:].dropna(subset=[df.columns[1]])  # שמירה רק על שורות עם ערכים בעמודת ההשקעה
+# יצירת גרף רק אם יש נתונים תקינים
+df_clean = df.iloc[1:].dropna(subset=[df.columns[1]])
 
 if not df_clean.empty and df_clean.shape[1] > 1:
     try:
