@@ -88,7 +88,12 @@ if not df_clean.empty and df_clean.shape[1] > 1:
     try:
         category_values = df_clean.iloc[:, 1].dropna().astype(float).tolist()
         category_names = df_clean[df_clean.columns[0]].dropna().astype(str).tolist()
-        
+
+        # Debugging - Print values
+        st.write("### Debugging Data for Plot")
+        st.write("Category Names:", category_names)
+        st.write("Category Values:", category_values)
+
         if len(category_names) != len(category_values):
             st.warning("⚠️ מספר שמות הקטגוריות ומספר הערכים אינם תואמים. בדוק את הנתונים.")
         else:
