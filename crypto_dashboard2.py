@@ -70,11 +70,11 @@ st.set_page_config(page_title="Crypto Dashboard", layout="wide")
 st.title("📊 Crypto Investment Dashboard")
 
 # בחירת מטבע לתצוגה
-coin_options = df.iloc[:, 0].dropna().unique()
+coin_options = df.iloc[:, 0].dropna().astype(str).unique()
 selected_coin = st.selectbox("בחר מטבע:", coin_options)
 
 # סינון הנתונים לפי המטבע הנבחר
-coin_data = df[df.iloc[:, 0] == selected_coin]
+coin_data = df[df.iloc[:, 0].astype(str) == selected_coin]
 
 # קבלת מחיר השוק בזמן אמת
 current_market_price = get_crypto_price(selected_coin.lower())
@@ -86,7 +86,7 @@ df_clean = df.dropna(subset=[df.columns[1]])
 
 if not df_clean.empty and df_clean.shape[1] > 1:
     try:
-        fig = px.pie(df_clean, names=df_clean.columns[0], values=pd.to_numeric(df_clean.iloc[:, 1], errors='coerce'),
+        fig = px.pie(df_clean, names=df_clean[df_clean.columns[0]].astype(str), values=pd.to_numeric(df_clean.iloc[:, 1], errors='coerce'),
                      title="התפלגות השקעות")
         st.plotly_chart(fig, use_container_width=True)
     except Exception as e:
