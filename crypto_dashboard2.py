@@ -86,7 +86,7 @@ df_clean = df.dropna(subset=[df.columns[1]])
 
 if not df_clean.empty and df_clean.shape[1] > 1:
     try:
-        fig = px.pie(df_clean, names=df_clean[df_clean.columns[0]].astype(str), values=pd.to_numeric(df_clean.iloc[:, 1], errors='coerce'),
+        fig = px.pie(df_clean, names=df_clean[df_clean.columns[0]].astype(str).tolist(), values=pd.to_numeric(df_clean.iloc[:, 1], errors='coerce').tolist(),
                      title="התפלגות השקעות")
         st.plotly_chart(fig, use_container_width=True)
     except Exception as e:
